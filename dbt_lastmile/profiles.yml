@@ -1,0 +1,16 @@
+# Local profile. Run dbt with:  dbt build --profiles-dir .
+# (or copy this block into ~/.dbt/profiles.yml)
+sp_lastmile:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      port: 5432
+      user: logistics
+      password: logistics
+      dbname: lastmile
+      schema: analytics      # default; per-folder schemas override this
+      threads: 8
+      keepalives_idle: 0
+      sslmode: disable

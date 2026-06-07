@@ -1,0 +1,50 @@
+version: 2
+
+models:
+  - name: stg_deliveries
+    description: >
+      Cleaned, PII-masked delivery events. This view is the LGPD boundary: no
+      clear-text CPF, recipient name, street or house number passes through it.
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "length(driver_cpf_hash) = 64"
+      - dbt_utils.expression_is_true:
+          expression: "length(recipient_key) = 64"
+      - dbt_utils.expression_is_true:
+          expression: "cep5 ~ '^[0-9]{5}$'"
+      - dbt_utils.expression_is_true:
+          expression: "right(vehicle_plate, 1) ~ '^[0-9]$'"
+    columns:
+      - name: event_id
+        description: "Natural key."
+        tests:
+          - unique
+          - not_null
+      - name: driver_id
+        description: "Stable driver business key."
+        tests:
+          - not_null
+      - name: driver_cpf_hash
+        description: "SHA-256 (hex) of the driver CPF. 64 hex chars."
+        tests:
+          - not_null
+      - name: recipient_key
+        description: "SHA-256 token anonymising the recipient."
+        tests:
+          - not_null
+      - name: cep5
+        description: "5-digit CEP prefix (regional grain)."
+        tests:
+          - not_null
+      - name: vehicle_type
+        tests:
+          - accepted_values:
+              values: ['MOTORCYCLE', 'VAN', 'TRUCK']
+      - name: status
+        tests:
+          - accepted_values:
+              values: ['DELIVERED', 'FAILED']
+      - name: vehicle_plate
+        description: "Uppercased Mercosul plate; ends in a digit."
+        tests:
+          - not_null

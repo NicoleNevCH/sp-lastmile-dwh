@@ -1,0 +1,60 @@
+name: 'sp_lastmile'
+version: '1.0.0'
+config-version: 2
+
+profile: 'sp_lastmile'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Make sure the required Postgres extensions exist before anything runs. Safe to
+# re-run; no-ops if they're already installed by the container init script.
+on-run-start:
+  - "CREATE EXTENSION IF NOT EXISTS postgis"
+  - "CREATE EXTENSION IF NOT EXISTS pgcrypto"
+
+vars:
+  # SLA target per delivery, in minutes (dispatch → delivery). Deliveries above
+  # this are flagged SLA_BREACH. The flood chaos is tuned to blow past it.
+  sla_threshold_minutes: 90
+  # WGS84 — coordinates emitted by the simulator.
+  geo_srid: 4326
+  # Salt/pepper for the one-way PII hash. Override in production via env, e.g.
+  #   dbt build --vars '{"pii_salt": "${PII_SALT}"}'
+  pii_salt: "sp-lastmile-pepper"
+
+models:
+  sp_lastmile:
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: table
+      +schema: staging
+    geo:
+      +materialized: table
+      +schema: staging
+    marts:
+      +materialized: table
+      +schema: analytics
+
+seeds:
+  sp_lastmile:
+    rodizio_schedule:
+      +schema: staging
+      +column_types:
+        iso_dow: integer
+        blocked_digit: integer
+
+snapshots:
+  sp_lastmile:
+    +target_schema: snapshots

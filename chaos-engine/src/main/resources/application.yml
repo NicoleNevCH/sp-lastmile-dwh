@@ -1,0 +1,57 @@
+spring:
+  application:
+    name: chaos-engine
+  datasource:
+    url: jdbc:postgresql://localhost:5432/lastmile?reWriteBatchedInserts=true
+    username: logistics
+    password: logistics
+    hikari:
+      # The pool must comfortably exceed the executor's max threads so that
+      # every "truck" thread can grab a connection for its batch flush even if
+      # the executor scales all the way up to executor.max-pool-size (64).
+      maximum-pool-size: 70
+      minimum-idle: 10
+      pool-name: ingestion-pool
+      connection-timeout: 30000
+  sql:
+    init:
+      mode: always          # runs schema-staging.sql on startup (idempotent)
+      schema-locations: classpath:schema-staging.sql
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+# ---------------------------------------------------------------------------
+# Simulation knobs — override via env vars or --args, e.g.
+#   java -jar app.jar --simulation.trucks=500 --simulation.deliveries-per-truck=40
+# ---------------------------------------------------------------------------
+simulation:
+  # Fire a run automatically on startup. Set false to drive it via the REST API.
+  auto-start: true
+  # Number of concurrent "trucks" (threads) dispatched.
+  trucks: 250
+  # Deliveries each truck performs during its shift.
+  deliveries-per-truck: 60
+  # JDBC batch size for bulk inserts into raw.delivery_events.
+  batch-size: 500
+  # Share of trucks deliberately sent to break the rodízio rule (0.0–1.0).
+  rodizio-violator-ratio: 0.18
+  # Share of routes that cross the Marginal Tietê flood polygon.
+  flood-affected-ratio: 0.12
+  # How many days back the simulated shifts are spread over.
+  history-days: 7
+
+executor:
+  core-pool-size: 32
+  max-pool-size: 64
+  queue-capacity: 1000
+
+logging:
+  level:
+    com.transportadora.chaos: INFO

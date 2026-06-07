@@ -1,0 +1,11 @@
+iso_dow,day_name,blocked_digit
+1,Monday,1
+1,Monday,2
+2,Tuesday,3
+2,Tuesday,4
+3,Wednesday,5
+3,Wednesday,6
+4,Thursday,7
+4,Thursday,8
+5,Friday,9
+5,Friday,0

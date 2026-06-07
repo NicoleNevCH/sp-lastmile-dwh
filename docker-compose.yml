@@ -1,0 +1,33 @@
+services:
+  warehouse:
+    image: postgis/postgis:16-3.4
+    container_name: sp_lastmile_warehouse
+    environment:
+      POSTGRES_USER: logistics
+      POSTGRES_PASSWORD: logistics
+      POSTGRES_DB: lastmile
+      # Tuned a bit for high-throughput batch ingestion on a laptop.
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=200"
+      - "-c"
+      - "shared_buffers=256MB"
+      - "-c"
+      - "synchronous_commit=off"        # faster bulk loads; fine for a local sim
+      - "-c"
+      - "max_wal_size=2GB"
+    ports:
+      - "5432:5432"
+    volumes:
+      - warehouse_data:/var/lib/postgresql/data
+      - ./infra/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U logistics -d lastmile"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  warehouse_data:

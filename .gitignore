@@ -1,0 +1,27 @@
+# ─── Java / Maven ───────────────────────────────────────────────
+chaos-engine/target/
+*.class
+*.jar
+*.war
+!.mvn/wrapper/maven-wrapper.jar
+
+# ─── dbt ────────────────────────────────────────────────────────
+dbt_lastmile/target/
+dbt_lastmile/dbt_packages/
+dbt_lastmile/logs/
+dbt_lastmile/.user.yml
+
+# ─── Python ─────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ─── Docker volume data (if ever bind-mounted) ──────────────────
+pgdata/
+
+# ─── IDE / OS ───────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+.DS_Store
